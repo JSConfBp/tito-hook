@@ -14,11 +14,13 @@ if(process.env.NODE_ENV !== "production") {
 	client = redis.createClient(process.env.REDIS_URL)
 }
 const { promisify } = require('util')
-const getAsync = promisify(client.get).bind(client);
+const setAsync = promisify(client.set).bind(client)
+const getAsync = promisify(client.get).bind(client)
+const delAsync = promisify(client.del).bind(client)
 const restify = require('restify');
 const crypto = require('crypto');
 
-function webhook(req, res, next) {
+async function webhook(req, res, next) {
 	res.send('ok');
 
 	const signature = req.headers['tito-signature']
@@ -28,12 +30,14 @@ function webhook(req, res, next) {
 	if (signature === hmac.digest('base64')) {
 
 		const { state_name, reference, updated_at = ''} = req.body
-
-		console.log(state_name);
-
 		if (state_name === 'new') {
-			client.set(reference, updated_at)
-			console.log(reference, updated_at);
+			await setAsync(reference, updated_at)
+			console.log(reference, updated_at)
+		}
+
+		if (state_name === "void") {
+			await delAsync(reference)
+			console.log('removed', reference)
 		}
 	}
 
