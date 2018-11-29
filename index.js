@@ -36,7 +36,7 @@ function webhook(req, res, next) {
   	next();
 }
 
-async function reference (req, res, next) {
+async function check (req, res, next) {
 	const id = req.params.titoid
 	const result = await getAsync(id)
 
@@ -56,8 +56,8 @@ const server = restify.createServer();
 server.post('/webhook', webhook);
 server.head('/webhook', webhook);
 
-server.get('/reference/:titoid', reference);
-server.head('/reference/:titoid', reference);
+server.get('/check/:titoid', check);
+server.head('/check/:titoid', check);
 
 server.use(restify.plugins.bodyParser())
 
