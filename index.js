@@ -30,6 +30,7 @@ async function webhook(req, res, next) {
 	if (signature === hmac.digest('base64')) {
 
 		const { state_name, reference, updated_at = ''} = req.body
+		
 		if (state_name === 'new') {
 			await setAsync(reference, updated_at)
 			console.log(reference, updated_at)
@@ -40,8 +41,6 @@ async function webhook(req, res, next) {
 			console.log('removed', reference)
 		}
 	}
-
-	// TODO ID removal
 
   	next();
 }
