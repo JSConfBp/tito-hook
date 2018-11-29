@@ -1,0 +1,30 @@
+---
+version: '3'
+
+services:
+
+  redis:
+    image: "redis:latest"
+
+  rediscommander:
+    container_name: rediscommander
+    hostname: rediscommander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+    - REDIS_HOSTS=local:redis:6379
+    ports:
+    - "8082:8081"
+
+  tito_hook:
+    image: node:10-alpine
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8080:8080"
+    working_dir: /usr/src/app
+    command: ["npm", "run", "dev"]
+    env_file:
+    - .env
+    environment:
+    - REDIS_URL=redis
