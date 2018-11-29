@@ -1,9 +1,11 @@
 if(process.env.NODE_ENV !== "production") {
 	require('dotenv').config()
 }
+
 const TITO_SHARED_TOKEN = process.env.TITO_SHARED_TOKEN
 const redis = require("redis")
 let client
+
 if(process.env.NODE_ENV !== "production") {
 	client = redis.createClient({
     	host: process.env.REDIS_URL
@@ -15,7 +17,6 @@ if(process.env.NODE_ENV !== "production") {
 const restify = require('restify');
 const crypto = require('crypto');
 
-
 function respond(req, res, next) {
 	res.send('ok');
 
@@ -23,13 +24,13 @@ function respond(req, res, next) {
 	const hmac = crypto.createHmac('sha256', TITO_SHARED_TOKEN);
 	hmac.update(JSON.stringify(req.body));
 
-	console.log(signature);
-	console.log(hmac.digest('base64'));
+	if (signature === hmac.digest('base64')) {
+		const { reference, updated_at } = req.body
+		client.set(reference, updated_at)
+		console.log(reference, updated_at);
+	}
 
-
-  	const { reference, updated_at } = req.body
-  //client.set(reference, updated_at )
-  next();
+  	next();
 }
 
 const server = restify.createServer();
