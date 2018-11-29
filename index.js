@@ -13,7 +13,7 @@ if(process.env.NODE_ENV !== "production") {
 } else {
 	client = redis.createClient(process.env.REDIS_URL)
 }
-const {promisify} = require('util')
+const { promisify } = require('util')
 const getAsync = promisify(client.get).bind(client);
 const restify = require('restify');
 const crypto = require('crypto');
@@ -37,13 +37,14 @@ function webhook(req, res, next) {
 }
 
 async function reference (req, res, next) {
-	res.send('hello ' + req.params.titoid);
-
 	const id = req.params.titoid
-
 	const result = await getAsync(id)
 
-	console.log(result)
+	if (result) {
+		res.status(200);
+	} else {
+		res.status(404);
+	}
 
 	next()
 }
