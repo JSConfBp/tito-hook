@@ -42,8 +42,10 @@ async function reference (req, res, next) {
 
 	if (result) {
 		res.status(200);
+		res.send('200')
 	} else {
 		res.status(404);
+		res.send('404')
 	}
 
 	next()
