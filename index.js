@@ -26,9 +26,15 @@ function webhook(req, res, next) {
 	hmac.update(JSON.stringify(req.body));
 
 	if (signature === hmac.digest('base64')) {
-		const { reference, updated_at } = req.body
-		client.set(reference, updated_at)
-		console.log(reference, updated_at);
+
+		const { state_name, reference, updated_at = ''} = req.body
+
+		console.log(state_name);
+
+		if (state_name === 'new') {
+			client.set(reference, updated_at)
+			console.log(reference, updated_at);
+		}
 	}
 
 	// TODO ID removal
