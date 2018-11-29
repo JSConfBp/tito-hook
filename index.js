@@ -24,7 +24,7 @@ function respond(req, res, next) {
 	hmac.update(JSON.stringify(req.body));
 
 	console.log(signature);
-	console.log(hmac.digest('hex'));
+	console.log(hmac.digest('base64'));
 
 
   	const { reference, updated_at } = req.body
