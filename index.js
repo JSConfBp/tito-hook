@@ -13,6 +13,7 @@ if(process.env.NODE_ENV !== "production") {
 } else {
 	client = redis.createClient(process.env.REDIS_URL)
 }
+const {promisify} = require('util')
 const getAsync = promisify(client.get).bind(client);
 const restify = require('restify');
 const crypto = require('crypto');
