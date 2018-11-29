@@ -13,11 +13,11 @@ if(process.env.NODE_ENV !== "production") {
 } else {
 	client = redis.createClient(process.env.REDIS_URL)
 }
-
+const getAsync = promisify(client.get).bind(client);
 const restify = require('restify');
 const crypto = require('crypto');
 
-function respond(req, res, next) {
+function webhook(req, res, next) {
 	res.send('ok');
 
 	const signature = req.headers['tito-signature']
@@ -30,13 +30,31 @@ function respond(req, res, next) {
 		console.log(reference, updated_at);
 	}
 
+	// TODO ID removal
+
   	next();
+}
+
+async function reference (req, res, next) {
+	res.send('hello ' + req.params.titoid);
+
+	const id = req.params.titoid
+
+	const result = await getAsync(id)
+
+	console.log(result)
+
+	next()
 }
 
 const server = restify.createServer();
 
-server.post('/webhook', respond);
-server.head('/webhook', respond);
+server.post('/webhook', webhook);
+server.head('/webhook', webhook);
+
+server.get('/reference/:titoid', reference);
+server.head('/reference/:titoid', reference);
+
 server.use(restify.plugins.bodyParser())
 
 server.listen(process.env.PORT, function() {
