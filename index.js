@@ -49,6 +49,8 @@ async function check (req, res, next) {
 	const id = req.params.titoid
 	const result = await getAsync(id)
 
+	console.log(id, result);
+
 	if (result) {
 		res.status(200);
 		res.send('200')
