@@ -14,11 +14,13 @@ if(process.env.NODE_ENV !== "production") {
 	client = redis.createClient(process.env.REDIS_URL)
 }
 const { promisify } = require('util')
-const getAsync = promisify(client.get).bind(client);
+const setAsync = promisify(client.set).bind(client)
+const getAsync = promisify(client.get).bind(client)
+const delAsync = promisify(client.del).bind(client)
 const restify = require('restify');
 const crypto = require('crypto');
 
-function webhook(req, res, next) {
+async function webhook(req, res, next) {
 	res.send('ok');
 
 	const signature = req.headers['tito-signature']
@@ -26,24 +28,33 @@ function webhook(req, res, next) {
 	hmac.update(JSON.stringify(req.body));
 
 	if (signature === hmac.digest('base64')) {
-		const { reference, updated_at } = req.body
-		client.set(reference, updated_at)
-		console.log(reference, updated_at);
-	}
 
-	// TODO ID removal
+		const { state_name, reference, updated_at = ''} = req.body
+		
+		if (state_name === 'new') {
+			await setAsync(reference, updated_at)
+			console.log(reference, updated_at)
+		}
+
+		if (state_name === "void") {
+			await delAsync(reference)
+			console.log('removed', reference)
+		}
+	}
 
   	next();
 }
 
-async function reference (req, res, next) {
+async function check (req, res, next) {
 	const id = req.params.titoid
 	const result = await getAsync(id)
 
 	if (result) {
 		res.status(200);
+		res.send('200')
 	} else {
 		res.status(404);
+		res.send('404')
 	}
 
 	next()
@@ -54,8 +65,8 @@ const server = restify.createServer();
 server.post('/webhook', webhook);
 server.head('/webhook', webhook);
 
-server.get('/reference/:titoid', reference);
-server.head('/reference/:titoid', reference);
+server.get('/check/:titoid', check);
+server.head('/check/:titoid', check);
 
 server.use(restify.plugins.bodyParser())
 
