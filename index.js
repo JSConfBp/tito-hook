@@ -2,7 +2,8 @@ if(process.env.NODE_ENV !== "production") {
 	require('dotenv').config()
 }
 
-const TITO_SHARED_TOKEN = process.env.TITO_SHARED_TOKEN
+const TITO_JS_TOKEN = process.env.TITO_JS_TOKEN
+const TITO_CSS_TOKEN = process.env.TITO_CSS_TOKEN
 const redis = require("redis")
 let client
 
@@ -24,13 +25,27 @@ async function webhook(req, res, next) {
 	res.send('ok');
 
 	const signature = req.headers['tito-signature']
-	const hmac = crypto.createHmac('sha256', TITO_SHARED_TOKEN);
-	hmac.update(JSON.stringify(req.body));
 
-	if (signature === hmac.digest('base64')) {
+	const hmacJS = crypto.createHmac('sha256', TITO_JS_TOKEN);
+	hmacJS.update(JSON.stringify(req.body));
 
+	const hmacCSS = crypto.createHmac('sha256', TITO_CSS_TOKEN);
+	hmacCSS.update(JSON.stringify(req.body));
+
+	const pass = (signature === hmacJS.digest('base64'))
+		|| (signature === hmacCSS.digest('base64'));
+
+
+	console.log({
+		pass,
+		fromJS: signature === hmacJS.digest('base64'),
+		fromCSS: signature === hmacCSS.digest('base64')
+	})
+
+
+	if (pass) {
 		const { state_name, reference, updated_at = ''} = req.body
-		
+
 		if (state_name === 'new') {
 			await setAsync(reference, updated_at)
 			console.log(reference, updated_at)
