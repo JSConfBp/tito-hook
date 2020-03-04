@@ -17,14 +17,16 @@ services:
     - "8082:8081"
 
   tito_hook:
-    image: node:10-alpine
+    image: node:12-alpine
     volumes:
       - .:/usr/src/app
     ports:
       - "8080:8080"
     working_dir: /usr/src/app
-    command: ["npm", "run", "dev"]
+    command: ["npx", "nodemon", "index.js"]
     env_file:
-    - .env
+      - .env
     environment:
-    - REDIS_URL=redis
+      - PORT=8080
+      - NODE_ENV=development
+      - REDIS_URL=redis
